@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#071d30" />
+    <meta
+      name="description"
+      content="Clark Hayashi's honest notes on books and audiobooks he finished, paused, or decided were not for him."
+    />
+    <meta property="og:title" content="Clark Reads" />
+    <meta
+      property="og:description"
+      content="Books I read. What I actually got from them."
+    />
+    <meta property="og:type" content="website" />
+    <title>Clark Reads | Honest Reading Notes</title>
+    <style>
+      :root {
+        --paper: #f3eee3;
+        --paper-dark: #e8dfcf;
+        --ink: #10283c;
+        --indigo: #071d30;
+        --red: #b95443;
+        --line: rgba(16, 40, 60, 0.22);
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: Arial, "Hiragino Kaku Gothic ProN", sans-serif;
+      }
+      a { color: inherit; text-decoration: none; }
+      button, input { font: inherit; }
+      main { max-width: 1440px; margin: 0 auto; min-height: 100vh; }
+
+      header {
+        min-height: 96px;
+        padding: 0 clamp(24px, 6vw, 84px);
+        background: var(--indigo);
+        color: #f6efe3;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 30px;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      .brand {
+        font-family: Georgia, "Yu Mincho", serif;
+        font-size: clamp(1.9rem, 2.4vw, 2.4rem);
+      }
+      nav { display: flex; gap: 34px; font-size: 1rem; }
+      nav a { padding: 8px 0; border-bottom: 1px solid transparent; }
+      nav a:hover, nav a:focus-visible { border-color: #f6efe3; }
+
+      .wave-line {
+        height: 9px;
+        background-color: #22496a;
+        background-image: radial-gradient(circle at 50% 100%, transparent 6px, rgba(243, 238, 227, 0.9) 6.5px, rgba(243, 238, 227, 0.9) 7.5px, transparent 8px);
+        background-size: 16px 8px;
+      }
+
+      .intro {
+        min-height: 410px;
+        padding: clamp(64px, 8vw, 105px) clamp(24px, 8vw, 116px);
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: clamp(50px, 8vw, 120px);
+        border-bottom: 1px solid var(--line);
+        background:
+          repeating-linear-gradient(0deg, transparent 0, transparent 39px, rgba(16, 40, 60, 0.035) 40px),
+          var(--paper);
+      }
+      .intro h1 {
+        max-width: 900px;
+        margin: 0;
+        font-family: Georgia, "Yu Mincho", serif;
+        font-size: clamp(3rem, 5.6vw, 5.4rem);
+        font-weight: 500;
+        letter-spacing: -0.055em;
+        line-height: 0.98;
+      }
+      .intro p {
+        max-width: 610px;
+        margin: 30px 0 0;
+        font-size: clamp(1.05rem, 1.6vw, 1.35rem);
+        line-height: 1.55;
+      }
+      .cover-stack { display: flex; align-items: end; padding-right: 18px; }
+      .cover-stack img {
+        width: clamp(105px, 10vw, 150px);
+        aspect-ratio: 2 / 3;
+        object-fit: cover;
+        border: 1px solid rgba(16, 40, 60, 0.18);
+        box-shadow: 0 14px 28px rgba(7, 29, 48, 0.16);
+      }
+      .cover-stack img + img { margin-left: clamp(-42px, -3vw, -24px); }
+      .cover-stack img:nth-child(2) { transform: translateY(18px); }
+
+      .reading, .shelf, .about { padding: 78px clamp(24px, 8vw, 116px); }
+      h2 {
+        margin: 0 0 34px;
+        font-family: Georgia, "Yu Mincho", serif;
+        font-size: clamp(2.2rem, 4vw, 4.2rem);
+        font-weight: 500;
+        letter-spacing: -0.04em;
+      }
+      .reading { background: var(--paper-dark); border-bottom: 1px solid var(--line); }
+      .next-list { border-top: 1px solid var(--ink); }
+      .next-list article {
+        display: grid;
+        grid-template-columns: 100px minmax(230px, 0.75fr) 1.25fr;
+        gap: 48px;
+        padding: 30px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .next-cover, .shelf-cover {
+        width: 100%;
+        aspect-ratio: 2 / 3;
+        object-fit: cover;
+        border: 1px solid rgba(16, 40, 60, 0.16);
+        box-shadow: 0 8px 18px rgba(7, 29, 48, 0.12);
+      }
+      .next-list h3, .book-list h3 {
+        margin: 0 0 6px;
+        font-family: Georgia, "Yu Mincho", serif;
+        font-size: 1.55rem;
+        font-weight: 500;
+      }
+      .next-list p { margin: 0; line-height: 1.6; }
+      .next-list div p { color: #60625d; font-size: 0.85rem; }
+
+      .shelf { background: var(--paper); }
+      .shelf-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 30px;
+      }
+      .shelf-title input {
+        width: min(100%, 280px);
+        border: 0;
+        border-bottom: 1px solid var(--ink);
+        background: transparent;
+        color: var(--ink);
+        padding: 10px 2px;
+        outline: none;
+      }
+      .shelf-title input:focus { border-color: var(--red); }
+      .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 25px; }
+      .filters button {
+        padding: 8px 14px;
+        border: 1px solid var(--line);
+        background: transparent;
+        color: var(--ink);
+        cursor: pointer;
+      }
+      .filters button:hover { border-color: var(--ink); }
+      .filters button.active { background: var(--ink); color: var(--paper); }
+      .book-list { border-top: 1px solid var(--ink); }
+      .book-list article {
+        display: grid;
+        grid-template-columns: 82px minmax(245px, 0.72fr) 1.28fr;
+        gap: 48px;
+        padding: 32px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .book-heading span {
+        display: block;
+        margin-bottom: 14px;
+        color: var(--red);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+      .book-heading p, .book-note p { margin: 0; }
+      .book-heading p { color: #60625d; font-size: 0.85rem; }
+      .book-note { align-self: center; }
+      .book-note p { line-height: 1.65; }
+      .book-note .verdict {
+        margin-top: 10px;
+        font-family: Georgia, serif;
+        font-style: italic;
+        color: #5d5a54;
+      }
+      .empty { padding: 60px 0; }
+
+      .about {
+        background: var(--indigo);
+        color: #f6efe3;
+        display: grid;
+        grid-template-columns: 0.7fr 1.3fr;
+        gap: 60px;
+      }
+      .about h2 { margin: 0; }
+      .about p {
+        max-width: 720px;
+        margin: 0;
+        font-family: Georgia, serif;
+        font-size: 1.2rem;
+        line-height: 1.75;
+      }
+
+      footer {
+        padding: 28px clamp(24px, 8vw, 116px);
+        background: #041421;
+        color: #cfc7b9;
+        display: flex;
+        justify-content: space-between;
+        gap: 30px;
+        font-size: 0.8rem;
+      }
+      footer a { color: #f3d09b; }
+      :focus-visible { outline: 3px solid var(--red); outline-offset: 4px; }
+
+      @media (max-width: 700px) {
+        header { min-height: 82px; }
+        .brand { font-size: 1.7rem; }
+        nav { gap: 16px; }
+        .intro { min-height: 390px; grid-template-columns: 1fr; gap: 46px; }
+        .cover-stack { padding-right: 0; }
+        .cover-stack img { width: 30%; max-width: 125px; }
+        .next-list article { grid-template-columns: 78px 1fr; gap: 18px; }
+        .next-list article > p { grid-column: 1 / -1; }
+        .book-list article { grid-template-columns: 68px 1fr; gap: 18px; }
+        .book-note { grid-column: 1 / -1; }
+        .about { grid-template-columns: 1fr; gap: 18px; }
+        .shelf-title { align-items: flex-start; flex-direction: column; }
+        .shelf-title input { width: 100%; }
+        .reading, .shelf, .about { padding-top: 60px; padding-bottom: 60px; }
+        footer { flex-direction: column; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <a class="brand" href="#top">Clark Reads</a>
+        <nav aria-label="Main navigation">
+          <a href="#reading">Reading</a>
+          <a href="#shelf">Shelf</a>
+          <a href="#about">About</a>
+        </nav>
+      </header>
+      <div class="wave-line" aria-hidden="true"></div>
+
+      <section class="intro" id="top">
+        <div>
+          <h1>Books I read.<br />What I actually got from them.</h1>
+          <p>
+            Short notes on the books and audiobooks I finish, pause, or decide
+            are not for me.
+          </p>
+        </div>
+        <div class="cover-stack" id="cover-stack" aria-label="A few books from my shelf"></div>
+      </section>
+
+      <section class="reading" id="reading">
+        <h2>Reading next</h2>
+        <div class="next-list" id="next-list"></div>
+      </section>
+
+      <section class="shelf" id="shelf">
+        <div class="shelf-title">
+          <h2>My shelf</h2>
+          <input id="search" type="search" aria-label="Search books" placeholder="Search books" />
+        </div>
+
+        <div class="filters" id="filters" role="group" aria-label="Filter books"></div>
+        <div class="book-list" id="book-list" aria-live="polite"></div>
+      </section>
+
+      <section class="about" id="about">
+        <h2>About</h2>
+        <p>
+          I’m Clark Hayashi. I grew up in Hawai‘i, studied analytics, marketing,
+          and Japanese in Seattle, and listen to most books while driving,
+          working out, or running errands. This is where I keep the ideas that
+          were actually useful.
+        </p>
+      </section>
+
+      <footer>
+        <span>Clark Hayashi</span>
+        <a href="mailto:hayashiclark@gmail.com">Recommend a book</a>
+      </footer>
+    </main>
+
+    <script>
+      const books = [
+        {
+          title: "The Psychology of Money",
+          author: "Morgan Housel",
+          isbn: "9780857197689",
+          status: "Finished",
+          topic: "Money",
+          note: "Being good with money is less about being brilliant and more about behaving consistently when life gets noisy.",
+          verdict: "Worth revisiting."
+        },
+        {
+          title: "Atomic Habits",
+          author: "James Clear",
+          isbn: "9780735211292",
+          status: "Finished",
+          topic: "Habits",
+          note: "My environment and weekly reset matter more than waiting to feel motivated.",
+          verdict: "Useful and practical."
+        },
+        {
+          title: "Can't Hurt Me",
+          author: "David Goggins",
+          isbn: "9781544512280",
+          status: "Finished",
+          topic: "Discipline",
+          note: "I can usually do more than the first tired version of me thinks. The accountability helps more than copying every extreme.",
+          verdict: "Good fuel, not a full life plan."
+        },
+        {
+          title: "How to Not Die Alone",
+          author: "Logan Ury",
+          isbn: "9781982120627",
+          status: "Finished",
+          topic: "Relationships",
+          note: "Once I can name a dating pattern, I can make a better choice instead of pretending it is just chemistry.",
+          verdict: "More useful than vague dating advice."
+        },
+        {
+          title: "Models",
+          author: "Mark Manson",
+          isbn: "9781463750350",
+          status: "Finished",
+          topic: "Relationships",
+          note: "Having a real life and being honest works better than trying to perform confidence.",
+          verdict: "The title sounds worse than the main idea."
+        },
+        {
+          title: "The Subtle Art of Not Giving a F*ck",
+          author: "Mark Manson",
+          isbn: "9780062457714",
+          status: "Finished",
+          topic: "Perspective",
+          note: "The point is not to care less about everything. It is to choose what deserves my energy.",
+          verdict: "Repetitive, but the main point stuck."
+        },
+        {
+          title: "Influence, New and Expanded",
+          author: "Robert B. Cialdini",
+          isbn: "9780062937650",
+          status: "Paused",
+          topic: "Marketing",
+          note: "This is relevant to my work, but it needs slower reading and notes instead of background listening.",
+          verdict: "Right book, wrong format."
+        },
+        {
+          title: "Designing Data-Intensive Applications",
+          author: "Martin Kleppmann",
+          isbn: "9781449373320",
+          status: "Paused",
+          topic: "Technology",
+          note: "Technical depth needs diagrams, rereading, and a reason to use it. Audio was not the move.",
+          verdict: "Better as a reference book."
+        },
+        {
+          title: "The Book on Rental Property Investing",
+          author: "Brandon Turner",
+          isbn: "9780990711797",
+          status: "Next",
+          topic: "Property",
+          note: "I bought this while helping prepare our Onipaa house to become a rental. I want to understand the numbers and systems.",
+          verdict: "No takeaway until I actually listen."
+        },
+        {
+          title: "Kitchen Confidential",
+          author: "Anthony Bourdain",
+          isbn: "9780060899226",
+          status: "Next",
+          topic: "Food",
+          note: "I wanted one good story told in the author's voice instead of another book trying to improve me.",
+          verdict: "The fun half of a two-for-one purchase."
+        },
+        {
+          title: "The 7 Habits of Highly Effective People",
+          author: "Stephen R. Covey",
+          isbn: "OL15982652M",
+          status: "Revisit",
+          topic: "Leadership",
+          note: "It may be more useful when I return with a specific leadership problem instead of listening because it is a classic.",
+          verdict: "Not for right now."
+        }
+      ];
+
+      const filterNames = ["All", "Finished", "Paused", "Next", "Revisit"];
+      let activeFilter = "All";
+
+      const coverUrl = (key) => `assets/covers/${key}.jpg`;
+
+      const escapeHtml = (value) =>
+        value.replace(/[&<>'"]/g, (character) => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          "'": "&#39;",
+          '"': "&quot;"
+        })[character]);
+
+      const imageMarkup = (book, className = "") =>
+        `<img class="${className}" src="${coverUrl(book.isbn)}" alt="${escapeHtml(book.title)} book cover" loading="lazy" />`;
+
+      function renderCoverStack() {
+        const featured = [books[0], books[8], books[9]];
+        document.querySelector("#cover-stack").innerHTML = featured
+          .map((book) => imageMarkup(book))
+          .join("");
+      }
+
+      function renderNext() {
+        document.querySelector("#next-list").innerHTML = books
+          .filter((book) => book.status === "Next")
+          .map((book) => `
+            <article>
+              ${imageMarkup(book, "next-cover")}
+              <div>
+                <h3>${escapeHtml(book.title)}</h3>
+                <p>${escapeHtml(book.author)}</p>
+              </div>
+              <p>${escapeHtml(book.note)}</p>
+            </article>
+          `)
+          .join("");
+      }
+
+      function renderFilters() {
+        document.querySelector("#filters").innerHTML = filterNames
+          .map((name) => `
+            <button type="button" data-filter="${name}" class="${activeFilter === name ? "active" : ""}" aria-pressed="${activeFilter === name}">
+              ${name}
+            </button>
+          `)
+          .join("");
+      }
+
+      function renderShelf() {
+        const term = document.querySelector("#search").value.trim().toLowerCase();
+        const visibleBooks = books.filter((book) => {
+          const matchesFilter = activeFilter === "All" || book.status === activeFilter;
+          const matchesSearch = !term || `${book.title} ${book.author} ${book.topic} ${book.note}`.toLowerCase().includes(term);
+          return matchesFilter && matchesSearch;
+        });
+
+        document.querySelector("#book-list").innerHTML = visibleBooks.length
+          ? visibleBooks.map((book) => `
+              <article>
+                ${imageMarkup(book, "shelf-cover")}
+                <div class="book-heading">
+                  <span>${escapeHtml(book.status)}</span>
+                  <h3>${escapeHtml(book.title)}</h3>
+                  <p>${escapeHtml(book.author)} · ${escapeHtml(book.topic)}</p>
+                </div>
+                <div class="book-note">
+                  <p>${escapeHtml(book.note)}</p>
+                  <p class="verdict">${escapeHtml(book.verdict)}</p>
+                </div>
+              </article>
+            `).join("")
+          : '<p class="empty">No books found.</p>';
+      }
+
+      document.querySelector("#filters").addEventListener("click", (event) => {
+        const button = event.target.closest("button[data-filter]");
+        if (!button) return;
+        activeFilter = button.dataset.filter;
+        renderFilters();
+        renderShelf();
+      });
+
+      document.querySelector("#search").addEventListener("input", renderShelf);
+
+      renderCoverStack();
+      renderNext();
+      renderFilters();
+      renderShelf();
+    </script>
+  </body>
+</html>
