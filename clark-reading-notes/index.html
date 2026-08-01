@@ -128,6 +128,39 @@
         .cover-stack img { transition: none; }
       }
 
+      .buy-link {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-top: 14px;
+        font-size: 0.92rem;
+        font-weight: 600;
+        color: var(--teal-deep);
+        text-decoration: none;
+        border-bottom: 1px solid rgba(79, 119, 115, 0.35);
+        transition: color 200ms var(--ease-out), border-color 200ms var(--ease-out);
+      }
+      .buy-link:hover { color: var(--ink); border-bottom-color: var(--ink); }
+      /* The affiliate label rides with the link, so the relationship is
+         visible where the click happens, not only in the footer. */
+      .buy-flag {
+        font-size: 0.68rem;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--bark);
+      }
+      .disclosure {
+        margin: 0;
+        padding: 30px clamp(24px, 8vw, 116px) 46px;
+        max-width: 88ch;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: rgba(28, 28, 28, 0.72);
+        background: var(--paper);
+      }
+      .disclosure strong { color: var(--ink); }
+
       .reading, .shelf, .about { padding: 78px clamp(24px, 8vw, 116px); }
       h2 {
         margin: 0 0 34px;
@@ -319,6 +352,15 @@
         </p>
       </section>
 
+      <p class="disclosure" id="disclosure" hidden>
+        These are my real takes on books I have actually read or listened to,
+        and nothing here is written or changed for a commission. If a note
+        talks you out of a book, that is the note doing its job. The links go
+        to Amazon for anyone who was already going to buy and would rather the
+        click support me. <strong>As an Amazon Associate I earn from qualifying
+        purchases.</strong>
+      </p>
+
       <footer>
         <span>Clark Hayashi</span>
         <nav aria-label="Elsewhere">
@@ -455,6 +497,46 @@
       let activeFilter = "All";
 
       const coverUrl = (key) => `assets/covers/${key}.jpg`;
+
+      /* Amazon Associates. Paste the Store ID here once Amazon issues it, e.g.
+         "clarkreads-20". While it is empty no buy links and no disclosure
+         render, because claiming an affiliate relationship that does not exist
+         yet would be its own kind of dishonest. */
+      const AMAZON_TAG = "";
+
+      /* Amazon addresses books by ASIN, which for a print book is its ISBN-10.
+         Every ISBN-13 here starts 978, so the 10 is recoverable: drop the
+         prefix, keep nine digits, recompute the check character. */
+      function isbn13to10(isbn13) {
+        if (!/^978\d{10}$/.test(isbn13)) return null;
+        const core = isbn13.slice(3, 12);
+        let sum = 0;
+        for (let i = 0; i < 9; i++) sum += Number(core[i]) * (10 - i);
+        const check = (11 - (sum % 11)) % 11;
+        return core + (check === 10 ? "X" : String(check));
+      }
+
+      /* Entries keyed by an Open Library edition rather than an ISBN cannot
+         resolve to a product page, so those fall back to a search. */
+      function amazonUrl(book) {
+        if (!AMAZON_TAG) return null;
+        const asin = isbn13to10(book.isbn);
+        return asin
+          ? `https://www.amazon.com/dp/${asin}?tag=${AMAZON_TAG}`
+          : `https://www.amazon.com/s?k=${encodeURIComponent(
+              `${book.title} ${book.author}`
+            )}&tag=${AMAZON_TAG}`;
+      }
+
+      /* rel="sponsored" is the honest declaration to search engines that this
+         link is paid; without it a monetised link reads as an editorial one. */
+      function buyMarkup(book) {
+        const href = amazonUrl(book);
+        if (!href) return "";
+        return `<a class="buy-link" href="${href}" target="_blank"
+          rel="sponsored nofollow noopener noreferrer">Buy on Amazon
+          <span class="buy-flag">affiliate</span></a>`;
+      }
 
       const escapeHtml = (value) =>
         value.replace(/[&<>'"]/g, (character) => ({
@@ -594,6 +676,7 @@
                 <div class="book-note">
                   <p>${escapeHtml(book.note)}</p>
                   <p class="verdict">${escapeHtml(book.verdict)}</p>
+                  ${buyMarkup(book)}
                 </div>
               </article>
             `).join("")
@@ -609,6 +692,11 @@
       });
 
       document.querySelector("#search").addEventListener("input", renderShelf);
+
+      /* The disclosure appears only when links actually carry the tag, so the
+         statement is never on the page without the relationship it describes,
+         and is never missing once it exists. */
+      document.querySelector("#disclosure").hidden = !AMAZON_TAG;
 
       renderCoverStack();
       preloadNextWindow();
