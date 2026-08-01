@@ -452,7 +452,10 @@
         `<img class="${className}" src="${coverUrl(book.isbn)}" alt="${escapeHtml(book.title)} book cover" loading="lazy" />`;
 
       function renderCoverStack() {
-        const featured = [books[0], books[8], books[9]];
+        /* The three most recent additions, so the hero follows the shelf
+           instead of being pinned to whichever books happened to be at
+           indices 0, 8 and 9 when it was written. */
+        const featured = books.slice(-3);
         document.querySelector("#cover-stack").innerHTML = featured
           .map((book) => imageMarkup(book))
           .join("");
