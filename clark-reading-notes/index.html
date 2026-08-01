@@ -31,6 +31,7 @@
         --line: rgba(28, 28, 28, 0.18);
         --serif: "Cormorant Garamond", Georgia, "Times New Roman", serif;
         --sans: "Satoshi", system-ui, -apple-system, "Segoe UI", sans-serif;
+        --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
       }
 
       * { box-sizing: border-box; }
@@ -74,7 +75,7 @@
       }
 
       .intro {
-        min-height: 410px;
+        min-height: clamp(430px, 52vh, 545px);
         padding: clamp(64px, 8vw, 105px) clamp(24px, 8vw, 116px);
         display: grid;
         grid-template-columns: minmax(0, 1fr) auto;
@@ -101,15 +102,31 @@
         line-height: 1.55;
       }
       .cover-stack { display: flex; align-items: end; padding-right: 18px; }
+      /* Each cover sits in a slot. The slot owns the static offset so the
+         image is free to animate without fighting a fixed transform. */
+      .cover-slot + .cover-slot { margin-left: clamp(-58px, -4vw, -34px); }
+      .cover-slot:nth-child(2) { transform: translateY(22px); }
       .cover-stack img {
-        width: clamp(105px, 10vw, 150px);
+        display: block;
+        width: clamp(132px, 13.5vw, 208px);
         aspect-ratio: 2 / 3;
         object-fit: cover;
         border: 1px solid rgba(16, 40, 60, 0.18);
         box-shadow: 0 14px 28px rgba(7, 29, 48, 0.16);
+        transition:
+          opacity 280ms var(--ease-out),
+          transform 280ms var(--ease-out);
       }
-      .cover-stack img + img { margin-left: clamp(-42px, -3vw, -24px); }
-      .cover-stack img:nth-child(2) { transform: translateY(18px); }
+      /* Exit is quicker than entry, so the swap feels decisive rather than
+         like a slow dissolve. */
+      .cover-stack img.is-swapping {
+        opacity: 0;
+        transform: translateY(-12px) scale(0.97);
+        transition-duration: 180ms;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .cover-stack img { transition: none; }
+      }
 
       .reading, .shelf, .about { padding: 78px clamp(24px, 8vw, 116px); }
       h2 {
@@ -236,7 +253,7 @@
         nav { gap: 16px; }
         .intro { min-height: 390px; grid-template-columns: 1fr; gap: 46px; }
         .cover-stack { padding-right: 0; }
-        .cover-stack img { width: 30%; max-width: 125px; }
+        .cover-stack img { width: 30vw; max-width: 150px; }
         .next-list article { grid-template-columns: 78px 1fr; gap: 18px; }
         .next-list article > p { grid-column: 1 / -1; }
         .book-list article { grid-template-columns: 68px 1fr; gap: 18px; }
@@ -451,15 +468,85 @@
       const imageMarkup = (book, className = "") =>
         `<img class="${className}" src="${coverUrl(book.isbn)}" alt="${escapeHtml(book.title)} book cover" loading="lazy" />`;
 
-      function renderCoverStack() {
-        /* The three most recent additions, so the hero follows the shelf
-           instead of being pinned to whichever books happened to be at
-           indices 0, 8 and 9 when it was written. */
-        const featured = books.slice(-3);
-        document.querySelector("#cover-stack").innerHTML = featured
-          .map((book) => imageMarkup(book))
-          .join("");
+      /* The hero stack cycles through the whole shelf rather than showing a
+         fixed three. Three slots hold a moving window over `books`, and every
+         tick advances that window by one.
+
+         The container is aria-hidden: every one of these books appears in the
+         list below with its full note, so announcing a set of covers that
+         rewrites itself every few seconds would be noise, not information. */
+      const coverStack = document.querySelector("#cover-stack");
+      const SLOT_COUNT = 3;
+      const SWAP_OUT = 180;
+      const SWAP_STAGGER = 60;
+      const HOLD = 3600;
+
+      const prefersReducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+      let windowStart = 0;
+      let rotateTimer = null;
+
+      const bookAt = (offset) => books[offset % books.length];
+
+      /* Assigning .alt sets a DOM property, not markup, so the title goes in
+         raw. Running it through escapeHtml would print a literal &amp;. */
+      function paintSlot(img, book) {
+        img.src = coverUrl(book.isbn);
+        img.alt = `${book.title} book cover`;
       }
+
+      function renderCoverStack() {
+        coverStack.setAttribute("aria-hidden", "true");
+        coverStack.innerHTML = Array.from(
+          { length: SLOT_COUNT },
+          () => `<div class="cover-slot"><img alt="" /></div>`
+        ).join("");
+        [...coverStack.querySelectorAll("img")].forEach((img, i) =>
+          paintSlot(img, bookAt(windowStart + i))
+        );
+      }
+
+      /* Warm the next window so a swap never lands on an undecoded image. */
+      function preloadNextWindow() {
+        for (let i = 0; i < SLOT_COUNT; i++) {
+          const next = new Image();
+          next.src = coverUrl(bookAt(windowStart + SLOT_COUNT + i).isbn);
+        }
+      }
+
+      function rotateCovers() {
+        windowStart = (windowStart + 1) % books.length;
+        [...coverStack.querySelectorAll("img")].forEach((img, i) => {
+          window.setTimeout(() => {
+            img.classList.add("is-swapping");
+            window.setTimeout(() => {
+              paintSlot(img, bookAt(windowStart + i));
+              img.classList.remove("is-swapping");
+            }, SWAP_OUT);
+          }, i * SWAP_STAGGER);
+        });
+        preloadNextWindow();
+      }
+
+      function startRotation() {
+        if (rotateTimer || prefersReducedMotion.matches) return;
+        rotateTimer = window.setInterval(rotateCovers, HOLD);
+      }
+
+      function stopRotation() {
+        window.clearInterval(rotateTimer);
+        rotateTimer = null;
+      }
+
+      /* Pause on hover so a cover cannot slide out from under a reader, and
+         when the tab is hidden so it is not animating to nobody. */
+      coverStack.addEventListener("mouseenter", stopRotation);
+      coverStack.addEventListener("mouseleave", startRotation);
+      document.addEventListener("visibilitychange", () =>
+        document.hidden ? stopRotation() : startRotation()
+      );
+      prefersReducedMotion.addEventListener("change", (event) =>
+        event.matches ? stopRotation() : startRotation()
+      );
 
       function renderNext() {
         document.querySelector("#next-list").innerHTML = books
@@ -524,6 +611,8 @@
       document.querySelector("#search").addEventListener("input", renderShelf);
 
       renderCoverStack();
+      preloadNextWindow();
+      startRotation();
       renderNext();
       renderFilters();
       renderShelf();
